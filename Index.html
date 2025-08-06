@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor Custom Selection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for the selected text decoration */
+        .my-custom-selection-style {
+            background-color: rgba(255, 0, 0, 0.3); /* Reddish transparent background */
+            color: #fff; /* White text color */
+        }
+
+        /* Basic styling for the editor container */
+        #container {
+            width: 100%;
+            height: 80vh; /* Make the editor take up most of the viewport height */
+            border: 1px solid #ccc;
+            border-radius: 8px; /* Rounded corners for the editor */
+            overflow: hidden; /* Ensure content stays within rounded corners */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif; /* Use Inter font */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5; /* Light gray background */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Monaco Editor: Custom Selection Style</h1>
+
+    <div id="container" class="w-full max-w-4xl rounded-lg shadow-lg"></div>
+
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.49.0/min/vs/loader.js"></script>
+
+    <script>
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.49.0/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            // Create the Monaco Editor instance
+            const editor = monaco.editor.create(document.getElementById('container'), {
+                value: [
+                    'function greet(name) {',
+                    '  // Select this line to see the custom style.',
+                    '  console.log(`Hello, ${name}!`);',
+                    '}',
+                    '',
+                    'greet("Monaco Editor User");',
+                    '// Try selecting multiple lines or just a word.'
+                ].join('\n'),
+                language: 'javascript',
+                theme: 'vs-dark', // You can change to 'vs-light' or 'hc-black'
+                minimap: { enabled: true }, // Enable minimap for better navigation
+                scrollBeyondLastLine: false, // Do not scroll beyond the last line
+                roundedSelection: true, // Enable rounded selection corners
+                autoIndent: 'full', // Auto indent code
+                fontSize: 16, // Set a comfortable font size
+            });
+
+            // Variable to store the IDs of the current decorations
+            let selectionDecorationId = [];
+
+            // Listen for changes in the editor's cursor selection
+            editor.onDidChangeCursorSelection((e) => {
+                // Clear any previously applied custom decorations
+                selectionDecorationId = editor.deltaDecorations(selectionDecorationId, []);
+
+                const selection = e.selection; // Get the current selection object
+
+                // Check if the selection is not empty (i.e., text is actually selected)
+                if (!selection.isEmpty()) {
+                    // Define the new decoration to apply to the selected range
+                    const newDecoration = [{
+                        range: selection, // The range to apply the decoration to
+                        options: {
+                            className: 'my-custom-selection-style', // The CSS class defined in <style>
+                            hoverMessage: {
+                                value: "You selected this text! 🎉" // Message to show on hover
+                            },
+                            // You can add more options here, e.g., glyphMarginClassName, is  : null, etc.
+                        }
+                    }];
+                    // Apply the new decorations and store their IDs
+                    selectionDecorationId = editor.deltaDecorations([], newDecoration);
+                }
+            });
+        });
+    </script>
+</body>
+  </html>
